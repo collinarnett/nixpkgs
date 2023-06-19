@@ -3197,6 +3197,15 @@
     githubId = 244239;
     name = "Mauricio Collares";
   };
+  collinarnett = {
+    email = "collin@arnett.it";
+    github = "collinarnett";
+    githubId = 38230482;
+    name = "Collin Arnett";
+    keys = [{
+      fingerprint = "56F8 3B07 79FB 369F 6910  9E2B A856 50D4 2EB7 41D9";
+    }]; 
+  };
   commandodev = {
     email = "ben@perurbis.com";
     github = "commandodev";
