@@ -2539,6 +2539,8 @@ self: super: with self; {
 
   dicttoxml2 = callPackage ../development/python-modules/dicttoxml2 { };
 
+  diffusers = callPackage ../development/python-modules/diffusers { };
+  
   diff-cover = callPackage ../development/python-modules/diff-cover { };
 
   diff-match-patch = callPackage ../development/python-modules/diff-match-patch { };
