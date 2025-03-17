@@ -16,6 +16,7 @@ let
     getName
     isBool
     max
+    optionals
     optionalString
     removeAttrs
     removePrefix
@@ -128,4 +129,21 @@ rec {
 
     in
     attrName: inputs: map (checkDrv attrName) inputs;
+
+  isBootstrapInstallPackage' = flip elem [
+    "flit-core"
+    "installer"
+  ];
+
+  isBootstrapPackage' = flip elem (
+    [
+      "build"
+      "packaging"
+      "pyproject-hooks"
+      "wheel"
+    ]
+    ++ optionals (python.pythonOlder "3.11") [
+      "tomli"
+    ]
+  );
 }

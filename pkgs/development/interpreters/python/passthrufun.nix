@@ -40,13 +40,14 @@ let
             value: pythonPackages.hasPythonModule value || providesSetupHook value || lib.elem value exceptions;
           func =
             name: value:
+            builtins.trace name(
             if lib.isDerivation value then
               lib.extendDerivation (
                 valid value
                 || throw "${name} should use `buildPythonPackage` or `toPythonModule` if it is to be part of the Python packages set."
-              ) { } value
+              ) { __lateBindingAttrName = name; } value
             else
-              value;
+              value);
         in
         lib.mapAttrs func items;
     in
@@ -83,7 +84,7 @@ let
             pyproject-nix = import ./pyproject.nix;
             extensions = lib.composeManyExtensions (
               [
-                pyproject-nix.build.extension
+                (final: _: (callPackage pyproject-nix.build.mkExtension { python = self; }) final)
                 hooks
                 pythonExtension
               ]
@@ -93,26 +94,6 @@ let
               ++ pythonPackagesExtensions
               ++ [
                 overrides
-              ]
-              ++ lib.optionals __lateBinding [
-                (
-                  python-final: python-prev:
-                  lib.mapAttrs python-prev (
-                    name: value:
-                    if !(builtins.isDerivation value) then
-                      value
-                    else
-                      value.overridePythonAttrs (
-                        prevAttrs:
-                        prevAttrs
-                        // {
-                          passthru = prevAttrs.passthru or { } // {
-                            __lateBindingAttrName = name;
-                          };
-                        }
-                      )
-                  )
-                )
               ]
             );
             aliases =

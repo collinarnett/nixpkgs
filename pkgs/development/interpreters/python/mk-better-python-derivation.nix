@@ -12,7 +12,7 @@ let
     optionals
     optionalAttrs
     ;
-  util = import ./util.nix { inherit lib toPythonModule namePrefix; };
+  util = import ./util.nix { inherit lib toPythonModule namePrefix python; };
 in
 
 {
@@ -39,7 +39,7 @@ in
   meta ? { },
   doCheck ? true,
   disabledTestPaths ? [ ],
-  stdenv,
+  stdenv ? python.stdenv,
   ...
 }@attrs:
 
@@ -52,7 +52,7 @@ assert permitUserSite == null;
 assert pythonPath == null;
 
 let
-  inherit (import ./util.nix { inherit lib namePrefix toPythonModule; })
+  inherit (util)
     cleanAttrs
     withDistOutput
     computeFormat
@@ -93,7 +93,7 @@ let
         nativeBuildInputs
         #
         ++ resolveBuildSystem (inputsToRequirements build-system);
-      buildInputs = validatePythonMatches "buildInputs" (buildInputs ++ pythonPath);
+      buildInputs = validatePythonMatches "buildInputs" buildInputs;
       propagatedBuildInputs = validatePythonMatches "propagatedBuildInputs" (
         propagatedBuildInputs ++ [ python ]
       );

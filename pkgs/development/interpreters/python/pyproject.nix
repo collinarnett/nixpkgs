@@ -1,6 +1,6 @@
 import (
   builtins.fetchTarball {
-    url = "https://github.com/SomeoneSerge/pyproject.nix/archive/60b3aa0c0093bcfbb60bde37afc38e8f50915e73.tar.gz";
-    sha256 = "0w21qpf5wgl8x4533ncip9gj00y78sr7j80s5jvr2sq22b015sgb";
+  url = "https://github.com/SomeoneSerge/pyproject.nix/archive/075efd01f4e5e0252659b1d65fc48fdd7e009c92.tar.gz";
+    sha256 = "sha256:0q06wh4qv5d9zwcv93jcpmvf6g95f44ihywk153nbwlhlcl82pfl";
   }
 ) { lib = import ../../../../lib; }

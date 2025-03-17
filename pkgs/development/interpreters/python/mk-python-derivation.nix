@@ -41,35 +41,28 @@ let
     optionalString
     splitString
     ;
-  util = import ./util.nix { inherit lib toPythonModule namePrefix; };
 
-  isBootstrapInstallPackage' = flip elem [
-    "flit-core"
-    "installer"
-  ];
-
-  isBootstrapPackage' = flip elem (
-    [
-      "build"
-      "packaging"
-      "pyproject-hooks"
-      "wheel"
-    ]
-    ++ optionals (python.pythonOlder "3.11") [
-      "tomli"
-    ]
-  );
-
-  isSetuptoolsDependency' = flip elem [
-    "setuptools"
-    "wheel"
-  ];
+  util = import ./util.nix {
+    inherit
+      lib
+      toPythonModule
+      namePrefix
+      python
+      ;
+  };
 
   inherit (util)
     cleanAttrs
     computeFormat
     transformDrv
+    isBootstrapInstallPackage'
+    isBootstrapPackage'
     ;
+
+  isSetuptoolsDependency' = flip elem [
+    "setuptools"
+    "wheel"
+  ];
 
 in
 
