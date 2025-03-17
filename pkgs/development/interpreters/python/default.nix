@@ -13,6 +13,7 @@
 (let
 
   # Common passthru for all Python interpreters.
+  passthruFunNG = import ./passthrufun.nix (args // { __lateBinding = true; });
   passthruFun = import ./passthrufun.nix args;
 
   sources = {
@@ -80,6 +81,11 @@ in {
   python312 = callPackage ./cpython ({
     self = __splicedPackages.python312;
     inherit passthruFun;
+  } // sources.python312);
+
+  python312NG = callPackage ./cpython ({
+    self = __splicedPackages.python312NG;
+    passthruFun = passthruFunNG;
   } // sources.python312);
 
   python313 = callPackage ./cpython {

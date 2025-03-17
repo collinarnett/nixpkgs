@@ -5,7 +5,7 @@
   pythonPackagesExtensions,
   config,
   makeScopeWithSplicing',
-  __lateBinding ? true,
+  __lateBinding ? false,
   ...
 }:
 
@@ -80,8 +80,10 @@ let
             optionalExtensions = cond: as: lib.optionals cond as;
             pythonExtension = import ../../../top-level/python-packages.nix;
             python2Extension = import ../../../top-level/python2-packages.nix;
+            pyproject-nix = import ./pyproject.nix;
             extensions = lib.composeManyExtensions (
               [
+                pyproject-nix.build.extension
                 hooks
                 pythonExtension
               ]
