@@ -5,6 +5,7 @@
   pythonPackagesExtensions,
   config,
   makeScopeWithSplicing',
+  __lateBinding ? true,
   ...
 }:
 
@@ -64,7 +65,7 @@ let
           }:
           let
             pythonPackagesFun = import ./python-packages-base.nix {
-              inherit stdenv pkgs lib;
+              inherit stdenv pkgs lib __lateBinding;
               python = self;
             };
             otherSplices = {
@@ -90,6 +91,26 @@ let
               ++ pythonPackagesExtensions
               ++ [
                 overrides
+              ]
+              ++ lib.optionals __lateBinding [
+                (
+                  python-final: python-prev:
+                  lib.mapAttrs python-prev (
+                    name: value:
+                    if !(builtins.isDerivation value) then
+                      value
+                    else
+                      value.overridePythonAttrs (
+                        prevAttrs:
+                        prevAttrs
+                        // {
+                          passthru = prevAttrs.passthru or { } // {
+                            __lateBindingAttrName = name;
+                          };
+                        }
+                      )
+                  )
+                )
               ]
             );
             aliases =

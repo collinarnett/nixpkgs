@@ -3,6 +3,7 @@
   stdenv,
   lib,
   python,
+  __lateBinding,
 }:
 
 self:
@@ -41,7 +42,12 @@ let
     );
 
   mkPythonDerivation =
-    if python.isPy3k then ./mk-python-derivation.nix else ./python2/mk-python-derivation.nix;
+    if __lateBinding then
+      ./mk-better-python-derivation.nix
+    else if python.isPy3k then
+      ./mk-python-derivation.nix
+    else
+      ./python2/mk-python-derivation.nix;
 
   buildPythonPackage = makeOverridablePythonPackage (
     callPackage mkPythonDerivation {
