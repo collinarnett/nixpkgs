@@ -146,4 +146,7 @@ rec {
       "tomli"
     ]
   );
+  isWeird = pname: isBootstrapPackage' pname || isBootstrapInstallPackage' pname || elem pname [
+    "setuptools"
+  ];
 }

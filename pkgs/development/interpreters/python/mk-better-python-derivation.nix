@@ -12,7 +12,14 @@ let
     optionals
     optionalAttrs
     ;
-  util = import ./util.nix { inherit lib toPythonModule namePrefix python; };
+  util = import ./util.nix {
+    inherit
+      lib
+      toPythonModule
+      namePrefix
+      python
+      ;
+  };
 in
 
 {
@@ -76,6 +83,7 @@ let
       inherit (util)
         mkValidatePythonMatches
         withDistOutput'
+        isWeird
         ;
       validatePythonMatches = mkValidatePythonMatches attrs finalAttrs;
 
@@ -89,10 +97,11 @@ let
         [
           pyprojectHook
         ]
-        ++
-        nativeBuildInputs
+        ++ nativeBuildInputs
         #
-        ++ resolveBuildSystem (inputsToRequirements build-system);
+        ++ optionals (!(isWeird finalAttrs.pname)) (
+          resolveBuildSystem (inputsToRequirements build-system)
+        );
       buildInputs = validatePythonMatches "buildInputs" buildInputs;
       propagatedBuildInputs = validatePythonMatches "propagatedBuildInputs" (
         propagatedBuildInputs ++ [ python ]
