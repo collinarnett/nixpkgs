@@ -87,6 +87,9 @@ let
                 (final: _: (callPackage pyproject-nix.build.mkExtension { python = self; }) final)
                 hooks
                 pythonExtension
+                (final: prev: {
+                  bootstrap = lib.genAttrs [ "setuptools" "flit-core" "build" "packaging" "installer" ] (name: null);
+                })
               ]
               ++ (optionalExtensions (!self.isPy3k) [
                 python2Extension
