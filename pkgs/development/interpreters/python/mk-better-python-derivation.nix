@@ -92,7 +92,6 @@ let
     cleanAttrs attrs
     // {
       name = namePrefix + attrs.name or "${finalAttrs.pname}-${finalAttrs.version}";
-      outputs = outputs ++ optionals withDistOutput [ "dist" ];
       nativeBuildInputs =
         [
           pyprojectHook

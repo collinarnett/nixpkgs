@@ -22,9 +22,6 @@ let
   } (builtins.readFile ./replace-workspace-values.py);
 
   fetchCargoVendorUtil = writers.writePython3Bin "fetch-cargo-vendor-util" {
-    libraries = with python3Packages; [
-      requests
-    ];
     flakeIgnore = [
       "E501"
     ];
