@@ -10,7 +10,9 @@ import tomllib
 from pathlib import Path
 from typing import Any, TypedDict, cast
 from urllib.parse import unquote
-from urllib import request
+
+import requests
+from requests.adapters import HTTPAdapter, Retry
 
 eprint = functools.partial(print, file=sys.stderr)
 
@@ -29,18 +31,28 @@ def get_lockfile_version(cargo_lock_toml: dict[str, Any]) -> int:
     return version
 
 
-def download_file_with_checksum(url: str, destination_path: Path) -> str:
+def create_http_session() -> requests.Session:
+    retries = Retry(
+        total=5,
+        backoff_factor=0.5,
+        status_forcelist=[500, 502, 503, 504]
+    )
+    session = requests.Session()
+    session.mount('http://', HTTPAdapter(max_retries=retries))
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
+
+
+def download_file_with_checksum(session: requests.Session, url: str, destination_path: Path) -> str:
     sha256_hash = hashlib.sha256()
-    response = request.urlopen(url)
-    if not response.ok:
-        raise Exception(
-            f"Failed to fetch file from {url}. Status code: {response.status_code}"
-        )
-    with open(destination_path, "wb") as file:
-        for chunk in response.iter_content(1024):  # Download in chunks
-            if chunk:  # Filter out keep-alive chunks
-                file.write(chunk)
-                sha256_hash.update(chunk)
+    with session.get(url, stream=True) as response:
+        if not response.ok:
+            raise Exception(f"Failed to fetch file from {url}. Status code: {response.status_code}")
+        with open(destination_path, "wb") as file:
+            for chunk in response.iter_content(1024):  # Download in chunks
+                if chunk:  # Filter out keep-alive chunks
+                    file.write(chunk)
+                    sha256_hash.update(chunk)
 
     # Compute the final checksum
     checksum = sha256_hash.hexdigest()
@@ -57,7 +69,8 @@ def get_download_url_for_tarball(pkg: dict[str, Any]) -> str:
     return f"https://crates.io/api/v1/crates/{pkg["name"]}/{pkg["version"]}/download"
 
 
-def download_tarball(pkg: dict[str, Any], out_dir: Path) -> None:
+def download_tarball(session: requests.Session, pkg: dict[str, Any], out_dir: Path) -> None:
+
     url = get_download_url_for_tarball(pkg)
     filename = f"{pkg["name"]}-{pkg["version"]}.tar.gz"
 
@@ -68,13 +81,14 @@ def download_tarball(pkg: dict[str, Any], out_dir: Path) -> None:
     tarball_out_dir = out_dir / "tarballs" / filename
     eprint(f"Fetching {url} -> tarballs/{filename}")
 
-    calculated_checksum = download_file_with_checksum(url, tarball_out_dir)
+    calculated_checksum = download_file_with_checksum(session, url, tarball_out_dir)
 
     if calculated_checksum != expected_checksum:
         raise Exception(f"Hash mismatch! File fetched from {url} had checksum {calculated_checksum}, expected {expected_checksum}.")
 
 
 def download_git_tree(url: str, git_sha_rev: str, out_dir: Path) -> None:
+
     tree_out_dir = out_dir / "git" / git_sha_rev
     eprint(f"Fetching {url}#{git_sha_rev} -> git/{git_sha_rev}")
 
@@ -146,7 +160,8 @@ def create_vendor_staging(lockfile_path: Path, out_dir: Path) -> None:
     with mp.Pool(min(5, mp.cpu_count())) as pool:
         if len(registry_packages) != 0:
             (out_dir / "tarballs").mkdir()
-            tarball_args_gen = ((pkg, out_dir) for pkg in registry_packages)
+            session = create_http_session()
+            tarball_args_gen = ((session, pkg, out_dir) for pkg in registry_packages)
             pool.starmap(download_tarball, tarball_args_gen)
 
 
