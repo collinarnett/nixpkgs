@@ -108,7 +108,7 @@ let
         ++ nativeBuildInputs
         #
         ++ optionals (!(isWeird finalAttrs.pname)) (
-          resolveBuildSystem (inputsToRequirements build-system)
+          resolveBuildSystem (inputsToRequirements build-system')
         );
       buildInputs = validatePythonMatches "buildInputs" buildInputs;
       propagatedBuildInputs = validatePythonMatches "propagatedBuildInputs" (
