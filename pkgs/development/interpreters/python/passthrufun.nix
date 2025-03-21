@@ -40,7 +40,7 @@ let
             value: pythonPackages.hasPythonModule value || providesSetupHook value || lib.elem value exceptions;
           func =
             name: value:
-            builtins.trace name(
+            (
             if lib.isDerivation value then
               lib.extendDerivation (
                 valid value
@@ -87,12 +87,15 @@ let
                 (final: _: (callPackage pyproject-nix.build.mkExtension { python = self; }) final)
                 hooks
                 pythonExtension
-                (final: prev: {
-                  bootstrap = lib.genAttrs [ "setuptools" "flit-core" "build" "packaging" "installer" ] (name: null);
-                })
               ]
               ++ (optionalExtensions (!self.isPy3k) [
                 python2Extension
+              ])
+                # TODO: Remove after testing
+              ++ (optionalExtensions (__lateBinding) [
+                (final: prev: {
+                  bootstrap = lib.genAttrs [ "setuptools" "flit-core" "build" "packaging" "installer" ] (name: null);
+                })
               ])
               ++ pythonPackagesExtensions
               ++ [
