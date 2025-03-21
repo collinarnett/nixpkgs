@@ -5,6 +5,8 @@
   pyprojectHook,
   lib,
   python,
+  setuptools, # TODO: check if this is spliced?
+  wheel,
 }:
 
 let
@@ -64,7 +66,12 @@ let
     withDistOutput
     computeFormat
     transformDrv
+    isBootstrapInstallPackage'
+    isBootstrapPackage'
     ;
+  isBootstrapInstallPackage = isBootstrapInstallPackage' (attrs.pname or null);
+
+  isBootstrapPackage = isBootstrapInstallPackage || isBootstrapPackage' (attrs.pname or null);
   inputsToRequirements =
     xs:
     lib.listToAttrs (
@@ -88,6 +95,8 @@ let
       validatePythonMatches = mkValidatePythonMatches attrs finalAttrs;
 
       withDistOutput = withDistOutput' format';
+
+      build-system' = if build-system == [ ] && !isBootstrapPackage then [ setuptools wheel ] else [ ];
     in
     cleanAttrs attrs
     // {

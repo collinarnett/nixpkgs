@@ -29,7 +29,6 @@ buildPythonPackage rec {
     hash = "sha256-lxwpbZgZq7OBERL8UsepdRyNOBiY82Uzuxb5eR6UH9Y=";
   };
 
-  build-inputs = [pathspec];
   # listed in backend/pyproject.toml
   dependencies = [
     editables
