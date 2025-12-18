@@ -42,6 +42,18 @@ buildGoModule rec {
     patchelf --add-needed libnvidia-ml.so "$out/bin/dcgm-exporter"
   '';
 
+  postInstall =
+    # Copy the configurations into $out/share, mirroring the Makefile's binary install.
+    ''
+      mkdir -p "$out/share/etc/dcgm-exporter"
+      cp "$src/etc"/* "$out/share/etc/dcgm-exporter/"
+    ''
+    # Copy the Grafana dashboard into $out/share so it is available to the user.
+    + ''
+      mkdir -p "$out/share/grafana"
+      cp "$src/grafana"/* "$out/share/grafana/"
+    '';
+
   meta = {
     description = "NVIDIA GPU metrics exporter for Prometheus leveraging DCGM";
     homepage = "https://github.com/NVIDIA/dcgm-exporter";
