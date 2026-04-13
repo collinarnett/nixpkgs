@@ -532,6 +532,61 @@ in
     meta.mainProgram = "rbprettier";
   };
 
+  prometheus-client-mmap =
+    attrs:
+    {
+      dontBuild = false;
+      postPatch =
+        let
+          getconf = if stdenv.hostPlatform.isGnu then stdenv.cc.libc else getconf;
+        in
+        ''
+          substituteInPlace lib/prometheus/client/page_size.rb --replace "getconf" "${lib.getBin getconf}/bin/getconf"
+        '';
+    }
+    // lib.optionalAttrs (lib.versionAtLeast attrs.version "1.0") {
+      cargoDeps = rustPlatform.fetchCargoVendor {
+        src = stdenv.mkDerivation {
+          inherit (buildRubyGem { inherit (attrs) gemName version source; })
+            name
+            src
+            unpackPhase
+            nativeBuildInputs
+            ;
+          dontBuild = true;
+          installPhase = ''
+            gem=$src
+            [ -d "$gem" ] && gem=$(echo "$gem"/*.gem)
+
+            mkdir unpacked
+            tar -xOf "$gem" data.tar.gz | tar -xz -C unpacked
+
+            cp -R unpacked $out
+          '';
+        };
+        hash = "sha256-lhD8vlqK9a38ZLBD6YagWnJ/DQ8YqbC1NxEyzYnoLh8=";
+      };
+
+      nativeBuildInputs = [
+        cargo
+        rustc
+        rustPlatform.cargoSetupHook
+        rustPlatform.bindgenHook
+      ];
+
+      disallowedReferences = [
+        rustc.unwrapped
+      ];
+
+      preInstall = ''
+        export CARGO_HOME="$PWD/../.cargo/"
+      '';
+
+      postInstall = ''
+        find $out -type f -name .rustc_info.json -delete
+      '';
+    };
+
   glib2 = attrs: {
     nativeBuildInputs = [ pkg-config ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ DarwinTools ];
     buildInputs = [
